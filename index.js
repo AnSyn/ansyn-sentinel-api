@@ -36,7 +36,7 @@ app.route('/api/search')
         const q1 = stringify(region);
         const q2 = [start, end];
         const q3 = { 'platformname': plate };
-        const url = `${dhus.url}search?row=${dhus.max_page}&q=${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)} AND ${generateSearchQuery(KEYWORDS.DATE, q2)} AND ${generateSearchQuery(KEYWORDS.PRODUCT, q3)}`;
+        const url = `${dhus.url}search?rows=${dhus.max_page}&q=${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)} AND ${generateSearchQuery(KEYWORDS.DATE, q2)} AND ${generateSearchQuery(KEYWORDS.PRODUCT, q3)}`;
         rp.get({
             uri: url,
             headers: {
@@ -48,7 +48,7 @@ app.route('/api/search')
                     res.status(500).json({ error: err });
                 } else {
                     const geojson = { type: 'FeatureCollection', features: [] };
-                    result.entry.forEach((overlay, i) => {
+                    result.feed.entry.forEach((overlay, i) => {
                         geojson.features.push(createGeoJsonOverlay(overlay, i));
                     });
                     res.json(geojson);
