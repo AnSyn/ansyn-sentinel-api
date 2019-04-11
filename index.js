@@ -12,10 +12,7 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors({
-    origin: /ansyn.webiks.com/g,
-    credentials: true,
-}))
+app.use(cors())
 
 app.get('/', (req, res) => {
     res.send('Hello Sentinel');
