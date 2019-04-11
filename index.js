@@ -54,6 +54,8 @@ app.route('/api/search')
                     res.json(geojson);
                 }
             });
+        }).catch((err) => {
+            res.status(err.statusCode).json({ error: err.message });
         });
     });
 
