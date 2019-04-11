@@ -5,14 +5,14 @@ const request = require('request');
 const rp = require('request-promise');
 const bodyParser = require('body-parser');
 const { stringify, parse } = require('wellknown');
-const { dhus, port,sentinelhub } = require('./config/config');
+const { api, port,sentinelhub } = require('./config/config');
 const { generateSearchQuery, KEYWORDS } = require('./searchQuery');
 const parseString = require('xml2js').parseString;
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(cors())
+app.use(cors());
 
 app.get('/', (req, res) => {
     res.send('Hello Sentinel');
@@ -22,25 +22,26 @@ app.route('/api/search')
     .get((req, res) => {
         const id = req.query.id;
         rp.get({
-            uri: `https://scihub.copernicus.eu/dhus/odata/v1/Products('${id}')/?$expand=Attributes&$format=json`,
+            uri: `${api.url}/odata/v1/Products('${id}')/?$expand=Attributes&$format=json`,
             json: true,
             headers: {
-                'Authorization': dhus.Auth
+                'Authorization': api.Auth
             }
         }).then(data => {
             res.json({ results: genreateProduct(data) });
         });
     })
     .post((req, res) => {
+        req.connection.setTimeout(10 * 60 * 1000);
         const { region, start, end, plate } = req.body;
         const q1 = stringify(region);
         const q2 = [start, end];
         const q3 = { 'platformname': plate };
-        const url = `${dhus.url}search?rows=${dhus.max_page}&q=${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)} AND ${generateSearchQuery(KEYWORDS.DATE, q2)} AND ${generateSearchQuery(KEYWORDS.PRODUCT, q3)}`;
+        const url = `${api.url}/search?rows=${api.max_page}&q=${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)} AND ${generateSearchQuery(KEYWORDS.DATE, q2)} AND ${generateSearchQuery(KEYWORDS.PRODUCT, q3)}`;
         rp.get({
             uri: url,
             headers: {
-                'Authorization': dhus.Auth
+                'Authorization': api.Auth
             }
         }).then((xml) => {
             parseString(xml, (err, result) => {
@@ -64,8 +65,8 @@ app.get('/api/thumbnail/:id', (req, res) => {
     const id = req.params.id;
     request.get(`http://scihub.copernicus.eu/dhus/odata/v1/Products('${id}')/Products('Quicklook')/$value`, {
         'auth': {
-            'user': dhus.user,
-            'pass': dhus.pass,
+            'user': api.user,
+            'pass': api.pass,
             'sendImmediately': false
         }
     }).pipe(res);
@@ -80,7 +81,7 @@ app.get('/api/wms', (req, res) => {
     request.get(url).pipe(res);
 });
 
-app.listen(port, () => console.log('cool ' + dhus.user + ' ' + dhus.pass));
+app.listen(port, () => console.log('cool ' + api.user + ' ' + api.pass));
 
 function createGeoJsonOverlay(overlay, i) {
     correctOverlay(overlay);
