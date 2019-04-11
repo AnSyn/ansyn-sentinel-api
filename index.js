@@ -1,5 +1,6 @@
 'use strict';
 const express = require('express');
+const cors = require('cors');
 const request = require('request');
 const rp = require('request-promise');
 const bodyParser = require('body-parser');
@@ -7,12 +8,14 @@ const { stringify, parse } = require('wellknown');
 const { dhus, port,sentinelhub } = require('./config/config');
 const { generateSearchQuery, KEYWORDS } = require('./searchQuery');
 const parseString = require('xml2js').parseString;
-const MAX_PAGE = 100;
 const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(cors({
+    origin: /ansyn.webiks.com/g,
+    credentials: true,
+}))
 
 app.get('/', (req, res) => {
     res.send('Hello Sentinel');
