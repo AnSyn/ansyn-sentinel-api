@@ -5,7 +5,7 @@ const request = require('request');
 const rp = require('request-promise');
 const bodyParser = require('body-parser');
 const { stringify, parse } = require('wellknown');
-const { api, port,sentinelhub } = require('./config/config');
+const { api, port, sentinelhub } = require('./config/config');
 const { generateSearchQuery, KEYWORDS } = require('./searchQuery');
 const parseString = require('xml2js').parseString;
 const app = express();
@@ -36,10 +36,11 @@ app.route('/api/search')
         const { region, start, end, plate } = req.body;
         const q1 = stringify(region);
         const q2 = [start, end];
-        const q3 = { 'platformname': plate };
-        const url = `${api.url}/search?rows=${api.max_page}&q=${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)} AND ${generateSearchQuery(KEYWORDS.DATE, q2)} AND ${generateSearchQuery(KEYWORDS.PRODUCT, q3)}`;
-        rp.get({
-            uri: url,
+        const q3 = { 'platformname': plate, producttype:'S2MSI2A'};
+        const url = `${api.url}/search?rows=${api.max_page}&q=( ${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)}) AND (${generateSearchQuery(KEYWORDS.DATE, q2)}) AND (${generateSearchQuery(KEYWORDS.PRODUCT, q3)})`;
+        console.log(url)
+        rp({
+            uri: url, //`${api.url}/search?q=( footprint:"Intersects(POLYGON((75.32226562499999 29.49698759653573,68.994140625 24.96614015991294,69.43359374999999 26.54922257769202,75.32226562499999 29.49698759653573,75.32226562499999 29.49698759653573)))") AND (  (platformname:Sentinel-2 AND producttype:S2MSI2A))`,
             headers: {
                 'Authorization': api.Auth
             }
@@ -49,14 +50,16 @@ app.route('/api/search')
                     res.status(500).json({ error: err });
                 } else {
                     const geojson = { type: 'FeatureCollection', features: [] };
-                    result.feed.entry.forEach((overlay, i) => {
-                        geojson.features.push(createGeoJsonOverlay(overlay, i));
-                    });
+                    if (result.feed.entry) {
+                        result.feed.entry.forEach((overlay, i) => {
+                            geojson.features.push(createGeoJsonOverlay(overlay, i));
+                        });
+                    }
                     res.json(geojson);
                 }
             });
         }).catch((err) => {
-            res.status(err.statusCode).json({ error: err.message });
+            res.status(err.statusCode || 500).json({ error: err.message });
         });
     });
 
@@ -75,7 +78,7 @@ app.get('/api/thumbnail/:id', (req, res) => {
 app.get('/api/wms', (req, res) => {
     const params = req.query;
     let url = `${sentinelhub.url}?`;
-    Object.entries(params).forEach( param => {
+    Object.entries(params).forEach(param => {
         url += `${param[0]}=${param[1]}&`;
     });
     request.get(url).pipe(res);

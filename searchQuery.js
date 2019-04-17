@@ -17,11 +17,11 @@ const generateSearchQuery = (keyword, value) => {
         }
         case KEYWORDS.PRODUCT: {
             const kv = Object.entries(value);
-            let str = ''
+            let str = '';
             kv.forEach( p => {
-                str += `${p[0]}:${p[1]} AND`;
+                str += `${p[0]}:${p[1]} AND `;
             });
-            return `(${str.substring(0, str.lastIndexOf(' AND'))})`;
+            return `(${str.substring(0, str.lastIndexOf(' AND '))})`;
         }
         default:
             return '';
