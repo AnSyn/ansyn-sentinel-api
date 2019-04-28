@@ -34,6 +34,9 @@ app.route('/api/search')
     .post((req, res) => {
         req.connection.setTimeout(10 * 60 * 1000);
         const { region, start, end, plate,products } = req.body;
+        if(products === undefined) {
+            products = ["S2MSI2A"];
+        }
         const q1 = stringify(region);
         const q2 = [start, end];
         const q3 = { platformname: plate, producttype: products};
