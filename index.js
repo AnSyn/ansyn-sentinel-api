@@ -33,10 +33,10 @@ app.route('/api/search')
     })
     .post((req, res) => {
         req.connection.setTimeout(10 * 60 * 1000);
-        const { region, start, end, plate } = req.body;
+        const { region, start, end, plate,products } = req.body;
         const q1 = stringify(region);
         const q2 = [start, end];
-        const q3 = { 'platformname': plate, producttype:'S2MSI2A'};
+        const q3 = { platformname: plate, producttype: products};
         const url = `${api.url}/search?rows=${api.max_page}&q=( ${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)}) AND (${generateSearchQuery(KEYWORDS.DATE, q2)}) AND (${generateSearchQuery(KEYWORDS.PRODUCT, q3)})`;
         console.log(url)
         rp({

@@ -16,11 +16,20 @@ const generateSearchQuery = (keyword, value) => {
             return `footprint:"Intersects(${value})"`;
         }
         case KEYWORDS.PRODUCT: {
-            const kv = Object.entries(value);
             let str = '';
-            kv.forEach( p => {
-                str += `${p[0]}:${p[1]} AND `;
-            });
+            const keys = Object.keys(value);
+            keys.forEach( key => {
+                if(Array.isArray(value[key])){
+                    let tmpStr = ''
+                    value[key].forEach( (val, i, arr) => {
+                        tmpStr += `${key}: ${val} ${arr.length - 1 > i? 'OR' : ''}`
+                    })
+                    str += tmpStr.length? `(${tmpStr})` : '';
+                }
+                else{
+                    str += `(${key}: ${value[key]}) AND `;
+                }
+            })
             return `(${str.substring(0, str.lastIndexOf(' AND '))})`;
         }
         default:
