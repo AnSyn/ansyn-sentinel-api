@@ -33,7 +33,8 @@ app.route('/api/search')
     })
     .post((req, res) => {
         req.connection.setTimeout(10 * 60 * 1000);
-        const { region, start, end, plate,products } = req.body;
+        const { region, start, end, plate } = req.body;
+        let products = req.body.products;
         if(products === undefined) {
             products = ["S2MSI2A"];
         }
