@@ -33,12 +33,12 @@ app.route('/api/search')
     })
     .post((req, res) => {
         req.connection.setTimeout(10 * 60 * 1000);
-        const { region, start, end, plate,products } = req.body;
+        const { region, start, end, plate, products, page } = req.body;
         const q1 = stringify(region);
         const q2 = [start, end];
-        const q3 = { platformname: plate, producttype: products};
-        const url = `${api.url}/search?rows=${api.max_page}&q=( ${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)}) AND (${generateSearchQuery(KEYWORDS.DATE, q2)}) AND (${generateSearchQuery(KEYWORDS.PRODUCT, q3)})`;
-        console.log(url)
+        const q3 = { platformname: plate, producttype: products };
+        const url = `${api.url}/search?start=${page * api.max_page}&rows=${api.max_page}&q=( ${generateSearchQuery(KEYWORDS.FOOTPRINT, q1)}) AND (${generateSearchQuery(KEYWORDS.DATE, q2)}) AND (${generateSearchQuery(KEYWORDS.PRODUCT, q3)})`;
+        console.log(url);
         rp({
             uri: url, //`${api.url}/search?q=( footprint:"Intersects(POLYGON((75.32226562499999 29.49698759653573,68.994140625 24.96614015991294,69.43359374999999 26.54922257769202,75.32226562499999 29.49698759653573,75.32226562499999 29.49698759653573)))") AND (  (platformname:Sentinel-2 AND producttype:S2MSI2A))`,
             headers: {
@@ -49,11 +49,19 @@ app.route('/api/search')
                 if (err) {
                     res.status(500).json({ error: err });
                 } else {
-                    const geojson = { type: 'FeatureCollection', features: [] };
-                    if (result.feed.entry) {
-                        result.feed.entry.forEach((overlay, i) => {
+                    const geojson = { type: 'FeatureCollection', features: [], properties: {} };
+                    const { feed } = result;
+                    if (feed.entry) {
+                        feed.entry.forEach((overlay, i) => {
                             geojson.features.push(createGeoJsonOverlay(overlay, i));
                         });
+                    }
+                    if (feed.link) {
+                        const links = feed.link.map(l => l.$.rel);
+                        geojson.properties.current = page;
+                        if (links.includes('next')) {
+                            geojson.properties.next = page + 1;
+                        }
                     }
                     res.json(geojson);
                 }
