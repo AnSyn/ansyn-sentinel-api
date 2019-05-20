@@ -34,15 +34,15 @@ app.route('/api/search')
     .post((req, res) => {
         req.connection.setTimeout(10 * 60 * 1000);
         const { region, start, end, plate } = req.body;
-        let { page,products } = req.body;
+        let { page, products } = req.body;
         if (!region) {
             return res.status(500).json({ error: 'must pass a region' });
         }
         if (!page) {
             page = 0;
         }
-        if(!products) {
-            products = ["S2MSI2A"];
+        if(!products){
+            products = ['S2MSI2A'];
         }
         const q1 = stringify(region);
         const q2 = [start, end];
@@ -101,7 +101,7 @@ app.get('/api/wms', (req, res) => {
     request.get(url).pipe(res);
 });
 
-app.listen(port, () => console.log('cool ' + api.user + ' ' + api.pass));
+app.listen(port);
 
 function createGeoJsonOverlay(overlay, i) {
     correctOverlay(overlay);
